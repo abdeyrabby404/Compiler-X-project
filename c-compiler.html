@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CompilerX — Online C Compiler</title>
+
+  <!-- Reuse your site's styles so the navbar matches -->
+  <link rel="shortcut icon" href="assets/img/favicon.png">
+  <link rel="stylesheet" type="text/css" href="assets/fonts/unicons/unicons.css">
+  <link rel="stylesheet" href="assets/css/plugins.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="assets/css/colors/aqua.css">
+  <link rel="preload" href="assets/css/fonts/thicccboi.css" as="style" onload="this.rel='stylesheet'">
+  <link rel="stylesheet" href="assets/css/icon.css">
+
+  <!-- Ace editor (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ext-language_tools.min.js"
+    crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --brand: #54a8c7;
+      --panel: #121821;
+      --panel-soft: #0f141c;
+      --text: #e6eef6;
+      --muted: #9fb2c5;
+    }
+
+    body {
+      background: #0f1720;
+    }
+
+    .compiler-hero {
+      background: #262b32;
+      color: #fff;
+      padding: 3rem 0 .5rem;
+    }
+
+    .compiler-wrap {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 1rem;
+      padding: 1rem 0 3rem;
+    }
+
+    @media (max-width: 992px) {
+      .compiler-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pane {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-radius: .6rem;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+    }
+
+    .pane-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .75rem 1rem;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0));
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .pane-head h5 {
+      margin: 0;
+      color: #eaf4ff;
+      font-size: .95rem;
+      letter-spacing: .2px;
+    }
+
+    #editor {
+      height: 60vh;
+      width: 100%;
+    }
+
+    .bar {
+      display: flex;
+      gap: .5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btnux {
+      border: 1px solid transparent;
+      color: #0b1220;
+      background: var(--brand);
+      padding: .55rem .9rem;
+      border-radius: .45rem;
+      font-weight: 600;
+      font-size: .9rem;
+    }
+
+    .btnux.secondary {
+      background: transparent;
+      color: var(--text);
+      border-color: rgba(255, 255, 255, .12);
+    }
+
+    .btnux.ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .bar select,
+    .bar input {
+      background: var(--panel-soft);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: .45rem;
+      height: 2.4rem;
+      padding: 0 .6rem;
+      font-size: .88rem;
+    }
+
+    .status-chip {
+      font-size: .8rem;
+      padding: .2rem .5rem;
+      border-radius: .4rem;
+      border: 1px solid rgba(255, 255, 255, .1);
+      color: #dbeafe;
+    }
+
+    .status-chip.ok {
+      border-color: rgba(21, 163, 74, .5);
+      color: #bbf7d0;
+    }
+
+    .status-chip.err {
+      border-color: rgba(239, 68, 68, .5);
+      color: #fecaca;
+    }
+
+    .io-wrap {
+      display: grid;
+      grid-template-rows: auto 1fr auto 1fr;
+    }
+
+    .io-area {
+      height: 22vh;
+      background: #0b121a;
+      color: var(--text);
+      /* color: white; */
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      font-size: .9rem;
+      padding: .75rem 1rem;
+      overflow: auto;
+      
+    }
+
+    .io-area pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: white;
+    }
+
+    .navbar.navbar-light.fixed .btn:not(.btn-expand):not(.btn-gradient) {
+      background: #54a8c7 !important;
+      border-color: #54a8c7 !important;
+      color: #ffffff !important;
+    }
+
+    .accordion-wrapper .card-header button {
+      color: #54a8c7;
+    }
+
+
+  </style>
+</head>
+
+<body class="font-THICCCBOI text-[.85rem]">
+  <div class="grow shrink-0">
+    <!-- ===== Navbar (copied structure from your index) ===== -->
+    <header class="relative wrapper bg-[#262b32] opacity-100">
+      <nav class="navbar navbar-expand-lg center-nav transparent navbar-dark">
+        <div class="container xl:!flex-row lg:!flex-row !flex-nowrap items-center">
+          <div class="navbar-brand w-full">
+            <a href="index.html">
+              <img class="logo-dark" src="assets/img/logo-dark.png" alt="image">
+              <img class="logo-light" src="assets/img/logo-light.png" alt="image">
+            </a>
+          </div>
+          <div class="navbar-collapse offcanvas offcanvas-nav offcanvas-start">
+            <div class="offcanvas-header xl:!hidden lg:!hidden flex items-center justify-between flex-row p-6">
+              <h3 class="!text-white xl:!text-[1.5rem] !text-[calc(1.275rem_+_0.3vw)] !mb-0">CompilerX</h3>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body xl:!ml-auto lg:!ml-auto flex flex-col !h-full">
+              <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item dropdown"><a class="nav-link active" href="c-compiler.html">Compiler</a></li>
+                <li class="nav-item dropdown"><a class="nav-link" href="#">Convert-CD</a></li>
+                <li class="nav-item dropdown dropdown-mega"><a class="nav-link" href="#">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="navbar-other w-full !flex !ml-auto">
+            <ul class="navbar-nav !flex-row !items-center !ml-auto">
+              <li class="nav-item"><a class="nav-link" data-bs-toggle="offcanvas" data-bs-target="#offcanvas-search"><i
+                    class="uil uil-search"></i></a></li>
+              <li class="nav-item hidden xl:block lg:block md:block">
+                <a class='btn btn-sm btn-aqua text-white !bg-[#54a8c7] hover:!text-white hover:bg-[#54a8c7] hover:!border-[#54a8c7] focus:shadow-[rgba(79,152,181,1)] active:!text-[#343f52] active:bg-[#54a8c7] active:border-[#54a8c7] disabled:!text-[#343f52] disabled:bg-[#54a8c7] disabled:border-[#54a8c7] !text-[.85rem] !rounded-[.4rem] hover:translate-y-[-0.15rem] hover:shadow-[0_0.25rem_0.75rem_rgba(30,34,40,0.15)]' target="_blank" 
+   rel="noopener noreferrer"
+                  href='https://github.com/abdeyrabby404/Compiler-X-project'>Code on GitHub</a>
+              </li>
+              <li class="nav-item xl:!hidden lg:!hidden"><button
+                  class="hamburger offcanvas-nav-btn"><span></span></button></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <div class="offcanvas offcanvas-top !bg-[#ffffff] " id="offcanvas-search" data-bs-scroll="true">
+        <div class="container flex !flex-row py-6">
+          <form
+            class=" search-form relative before:content-['\eca5'] before:block before:absolute before:-translate-y-2/4 before:text-[1rem] before:!text-[#343f52] before:z-[1] before:right-auto before:top-2/4 before:font-Unicons w-full before:left-0 focus:!outline-offset-0  ">
+            <input id="search-form1" type="text"
+              class="form-control text-[0.8rem] !shadow-none !pl-[1.75rem] !pr-[.75rem] border-0 bg-inherit m-0 block w-full font-medium !leading-[1.7] !text-[#60697b] px-4 py-[0.6rem] rounded-[0.4rem] focus:!outline-offset-0  "
+              placeholder="Type keyword and hit enter">
+          </form>
+          <button type="button"
+            class="btn-close leading-none !text-[#343f52] transition-all duration-[0.2s] ease-in-out p-0 border-0 motion-reduce:transition-none before:text-[1.05rem] before:content-['\ed3b'] before:w-[1.8rem] before:h-[1.8rem] before:leading-[1.8rem] before:shadow-none before:transition-[background] before:duration-[0.2s] before:ease-in-out before:!flex before:justify-center before:items-center before:m-0 before:p-0 before:rounded-[100%] hover:no-underline bg-inherit before:bg-[rgba(0,0,0,.08)] before:font-Unicons hover:before:bg-[rgba(0,0,0,.11)]  "
+            data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <!-- /.container -->
+      </div>
+    </header>
+
+    <!-- ===== Hero ===== -->
+    <section class="compiler-hero">
+      <div class="container pb-4">
+        <h1 class="!text-[calc(1.375rem_+_1.2vw)] font-bold !leading-[1.15] xl:!text-[2.2rem] !text-white !mb-2">Welcome
+          to CompilerX <br> <br>C Compiler</h1>
+        <p class="lead !text-white !mb-0">Write, compile, and run C (C17) in your browser.</p>
+      </div>
+    </section>
+
+    <!-- ===== Compiler UI ===== -->
+    <section class="wrapper">
+      <div class="container">
+        <div class="compiler-wrap">
+          <!-- Left: Editor -->
+          <div class="pane">
+            <div class="pane-head">
+              <h5>main.c</h5>
+              <div class="bar">
+                <button class="btnux" id="runBtn">Run ▷</button>
+                <button class="btnux secondary" id="saveBtn" title="Save to browser">Save</button>
+                <button class="btnux secondary" id="loadBtn" title="Load from browser">Load</button>
+                <button class="btnux secondary" id="downloadBtn" title="Download main.c">Download</button>
+                <label for="optStd" style="color:#9fb2c5; font-size:.8rem;">Std</label>
+                <select id="optStd">
+                  <option value="c17" selected>C17</option>
+                  <option value="c11">C11</option>
+                  <option value="c99">C99</option>
+                </select>
+                <label for="optO" style="color:#9fb2c5; font-size:.8rem;">-O</label>
+                <select id="optO">
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2" selected>2</option>
+                  <option value="3">3</option>
+                </select>
+              </div>
+            </div>
+            <div id="editor"></div>
+          </div>
+
+          <!-- Right: I/O -->
+          <div class="pane io-wrap">
+            <div class="pane-head">
+              <h5>Program Input (stdin)</h5><span class="status-chip" id="statusChip">Idle</span>
+            </div>
+            <textarea id="stdin" class="io-area" placeholder="Type input here...&#10;Example:&#10;5 10"></textarea>
+
+            <div class="pane-head">
+              <h5>Program Output</h5>
+              <div class="bar"><button id="clearOut" class="btnux ghost">Clear</button></div>
+            </div>
+            <div id="stdout" class="io-area text-white">
+              <pre id="stdoutPre"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div style="color:#9fb2c5; font-size:.9rem; margin-top:-.5rem;">
+          <h1>Thank you for using CompilerX</h1>
+        </div>
+      </div>
+    </section>
+  </div>
+  <footer class=" bg-[#21262c] opacity-100  !text-[#cacaca]">
+    <div class="container pt-28 xl:pt-36 lg:pt-36 md:pt-36 pb-16 xl:pb-20 lg:pb-20 md:pb-20">
+      <div class="flex flex-wrap mx-[-15px] !mt-[-30px] xl:!mt-0 lg:!mt-0">
+        <div
+          class="md:w-4/12 xl:w-3/12 lg:w-3/12 w-full flex-[0_0_auto] !px-[15px] max-w-full xl:!mt-0 lg:!mt-0 !mt-[30px]">
+          <div class="widget !text-[#cacaca]">
+            <img class="!mb-4" src="assets/img/logo-light.png" alt="footer logo image">
+            <p class="!mb-4">© 2025 CompilerX. <br class="hidden xl:block lg:block !text-[#cacaca]">All rights reserved.
+            </p>
+            <nav class="nav social social-white">
+              <a class="!text-[#cacaca] text-[1rem] transition-all duration-[0.2s] ease-in-out translate-y-0 motion-reduce:transition-none hover:translate-y-[-0.15rem] m-[0_.7rem_0_0]"
+                href="#"><i class="uil uil-twitter before:content-['\ed59'] !text-white text-[1rem]"></i></a>
+              <a class="!text-[#cacaca] text-[1rem] transition-all duration-[0.2s] ease-in-out translate-y-0 motion-reduce:transition-none hover:translate-y-[-0.15rem] m-[0_.7rem_0_0]"
+                href="#"><i class="uil uil-facebook-f before:content-['\eae2'] !text-white text-[1rem]"></i></a>
+              <a class="!text-[#cacaca] text-[1rem] transition-all duration-[0.2s] ease-in-out translate-y-0 motion-reduce:transition-none hover:translate-y-[-0.15rem] m-[0_.7rem_0_0]"
+                href="#"><i class="uil uil-dribbble before:content-['\eaa2'] !text-white text-[1rem]"></i></a>
+              <a class="!text-[#cacaca] text-[1rem] transition-all duration-[0.2s] ease-in-out translate-y-0 motion-reduce:transition-none hover:translate-y-[-0.15rem] m-[0_.7rem_0_0]"
+                href="#"><i class="uil uil-instagram before:content-['\eb9c'] !text-white text-[1rem]"></i></a>
+              <a class="!text-[#cacaca] text-[1rem] transition-all duration-[0.2s] ease-in-out translate-y-0 motion-reduce:transition-none hover:translate-y-[-0.15rem] m-[0_.7rem_0_0]"
+                href="#"><i class="uil uil-youtube before:content-['\edb5'] !text-white text-[1rem]"></i></a>
+            </nav>
+            <!-- /.social -->
+          </div>
+          <!-- /.widget -->
+        </div>
+        <!-- /column -->
+        <div
+          class="md:w-4/12 xl:w-3/12 lg:w-3/12 w-full flex-[0_0_auto] !px-[15px] max-w-full xl:!mt-0 lg:!mt-0 !mt-[30px]">
+          <div class="widget !text-[#cacaca]">
+            <h4 class="widget-title !text-white !mb-3 !text-[1rem] !leading-[1.45]">Get in Touch</h4>
+            <address class="xl:!pr-20 xxl:!pr-28 not-italic !leading-[inherit] block !mb-4">Bank Colony Street, Savar, Dhaka, Bangladesh</address>
+            <a class="!text-[#cacaca] hover:!text-[#54a8c7]" href="mailto:first.last@email.com">abdeyrabby404@gmail.com</a><br>
+            +88 01648926381
+          </div>
+          <!-- /.widget -->
+        </div>
+        <!-- /column -->
+        <div
+          class="md:w-4/12 xl:w-3/12 lg:w-3/12 w-full flex-[0_0_auto] !px-[15px] max-w-full xl:!mt-0 lg:!mt-0 !mt-[30px]">
+          <div class="widget !text-[#cacaca]">
+            <h4 class="widget-title !text-white !mb-3 !text-[1rem] !leading-[1.45]">Learn More</h4>
+            <ul class="pl-0 list-none   !mb-0">
+              <li><a class="!text-[#cacaca] hover:!text-[#54a8c7]" href="#">About Us</a></li>
+              <li class="!mt-[0.35rem]"><a class="!text-[#cacaca] hover:!text-[#54a8c7]" href="#">Our Story</a></li>
+              <li class="!mt-[0.35rem]"><a class="!text-[#cacaca] hover:!text-[#54a8c7]" href="#">Projects</a></li>
+              <li class="!mt-[0.35rem]"><a class="!text-[#cacaca] hover:!text-[#54a8c7]" href="#">Terms of Use</a></li>
+              <li class="!mt-[0.35rem]"><a class="!text-[#cacaca] hover:!text-[#54a8c7]" href="#">Privacy Policy</a>
+              </li>
+            </ul>
+          </div>
+          <!-- /.widget -->
+        </div>
+        <!-- /column -->
+        <div
+          class="md:w-full xl:w-3/12 lg:w-3/12 w-full flex-[0_0_auto] !px-[15px] max-w-full xl:!mt-0 lg:!mt-0 !mt-[30px]">
+          <div class="widget !text-[#cacaca]">
+            <h4 class="widget-title !text-white !mb-3 !text-[1rem] !leading-[1.45]">Our Newsletter</h4>
+            <p class="!mb-5">Subscribe to our newsletter to get our news & deals delivered to you.</p>
+            <div class="newsletter-wrapper">
+              <!-- Begin Mailchimp Signup Form -->
+              <div id="mc_embed_signup2">
+                <form
+                  action="https://elemisfreebies.us20.list-manage.com/subscribe/post?u=aa4947f70a475ce162057838d&amp;id=b49ef47a9a"
+                  method="post" id="mc-embedded-subscribe-form2" name="mc-embedded-subscribe-form"
+                  class="validate dark-fields" target="_blank" novalidate>
+                  <div id="mc_embed_signup_scroll2">
+                    <div class="!text-left input-group form-floating !relative flex flex-wrap items-stretch w-full">
+                      <input type="email" value="" name="EMAIL"
+                        class="required email form-control block w-full text-[12px] font-medium !leading-[1.7] appearance-none bg-clip-padding shadow-[0_0_1.25rem_rgba(30,34,40,0.04)] px-4 py-[0.6rem] rounded-[0.4rem] motion-reduce:transition-none     focus:shadow-[0_0_1.25rem_rgba(30,34,40,0.04),unset] disabled:bg-[#aab0bc] disabled:opacity-100 file:!mt-[-0.6rem] file:mr-[-1rem] file:!mb-[-0.6rem] file:ml-[-1rem] file:!text-[#60697b] file:bg-[#fefefe] file:pointer-events-none file:transition-all file:duration-[0.2s] file:ease-in-out file:px-4 file:py-[0.6rem] file:rounded-none motion-reduce:file:transition-none placeholder:!text-[#959ca9] placeholder:opacity-100 border border-solid !border-[rgba(255,255,255,0.1)] !text-[#cacaca] focus:!border-[rgba(84,168,199,.5)] bg-[rgba(255,255,255,.03)] focus-visible:!border-[rgba(84,168,199,.5)]  "
+                        placeholder="" id="mce-EMAIL2">
+                      <label
+                        class="!ml-[0.05rem] !text-[#959ca9] text-[.75rem] absolute z-[2] h-full overflow-hidden text-start text-ellipsis whitespace-nowrap pointer-events-none origin-[0_0] px-4 py-[0.6rem] left-0 top-0"
+                        for="mce-EMAIL2">Email Address</label>
+                      <input type="submit" value="Join" name="subscribe" id="mc-embedded-subscribe2"
+                        class="btn btn-aqua !text-white !bg-[#54a8c7] border-[#54a8c7] hover:text-white hover:bg-[#54a8c7] hover:!border-[#54a8c7] active:text-white active:bg-[#54a8c7] active:border-[#54a8c7] disabled:text-white disabled:bg-[#54a8c7] disabled:border-[#54a8c7] !relative z-[2] hover:!transform-none hover:!translate-none border-0 !text-[.85rem]">
+                    </div>
+                    <div id="mce-responses2" class="clear">
+                      <div class="response" id="mce-error-response2" style="display:none"></div>
+                      <div class="response" id="mce-success-response2" style="display:none"></div>
+                    </div>
+                    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+                    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text"
+                        name="b_ddc180777a163e0f9f66ee014_4b1bcfa0bc" tabindex="-1" value=""></div>
+                    <div class="clear"></div>
+                  </div>
+                </form>
+              </div>
+              <!--End mc_embed_signup-->
+            </div>
+            <!-- /.newsletter-wrapper -->
+          </div>
+          <!-- /.widget -->
+        </div>
+        <!-- /column -->
+      </div>
+      <!--/.row -->
+    </div>
+    <!-- /.container -->
+  </footer>
+  <!-- Your site scripts (for navbar/offcanvas) -->
+  <script src="assets/js/plugins.js"></script>
+  <script src="assets/js/theme.js"></script>
+
+  <!-- Compiler logic -->
+  <script src="assets/js/c-compiler.js"></script>
+</body>
+
+</html>
